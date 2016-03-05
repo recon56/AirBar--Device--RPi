@@ -7,8 +7,8 @@ if __name__ == "__main__":
     cv = threading.Condition(None)
     cv.acquire()
 
-    i2c = I2CExtender.IOPlus(thread_id="i2c", c_variable=cv, name="Board1",
-                             i2c_addr=0x20, intr_pin=17)
+    i2c = I2CExtender.IOPlus(thread_id="i2c", c_variable=cv, name="I2C",
+                             intr_pin=17)
     i2c.start()
 
     k = 0
