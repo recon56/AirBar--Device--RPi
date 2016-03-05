@@ -9,7 +9,7 @@ __author__ = 'recon'
 
 
 class IOPlus(threading.Thread):
-    def __init__(self, thread_id, c_variable, name, i2c_addr, intr_pin):
+    def __init__(self, thread_id, c_variable, name, intr_pin):
         # Thread information
         threading.Thread.__init__(self)
         self.threadID = thread_id
@@ -19,7 +19,9 @@ class IOPlus(threading.Thread):
         # I2C information
         self.i2c_helper = ABEHelpers()
         self.i2c_bus = self.i2c_helper.get_smbus()
-        self.bus = IoPi(self.i2c_bus, i2c_addr)
+        buses = ()
+        for addr in range(0x20, 0x21):
+            buses.append = IoPi(self.i2c_bus, addr)
 
         # Pi pin information
         self.intr_pin = intr_pin
@@ -34,11 +36,19 @@ class IOPlus(threading.Thread):
         self.monitor_interrupt_pin()
 
     def read_pins(self):
-        return self.bus.read_port(1) << 8 | self.bus.read_port(0)
+        pins = np.uint128(0x0)
+        for bus in self.buses:
+            pins = pins << 16 | (bus.read_port(1) << 8 | self.bus.read_port(0))
+        return pins
+
+    def set_interrupts(self):
+        for bus in self.buses:
+            bus.set_interrupt_on_port(0, 0xFF)
+            bus.set_interrupt_on_port(1, 0xFF)
 
     def monitor_interrupt_pin(self):
-        self.bus.set_interrupt_on_port(0, 0xFF)
-        self.bus.set_interrupt_on_port(1, 0xFF)
+        self.set_interrupts()
+
         while True:
             GPIO.wait_for_edge(self.intr_pin, GPIO.RISING)
             if GPIO.input(self.intr_pin) == 1:
